@@ -82,6 +82,7 @@ jobs:
           SHA: ${{ github.sha }}
           ACTOR: ${{ github.actor }}
           DEPLOY_ENV: production
+          BANNER: ${{ vars.BANNER }}
         run: python3 scripts/stamp.py
 
       - name: Log in to Google Cloud, keyless

@@ -28,6 +28,8 @@ error, write down what you think it means, and wait. We fix each one together.
    | `GCP_PROJECT` | `deepstack-492609` |
    | `GCP_REGION` | `europe-west1` |
 
+   Optional: add `BANNER` with any sentence, and it appears on your live page.
+
    None of these are secrets. That is the point of the keyless login: there is
    no password to store.
 
@@ -80,6 +82,7 @@ This is how most people write their first deploy job. Add it, exactly as it is.
           SHA: ${{ github.sha }}
           ACTOR: ${{ github.actor }}
           DEPLOY_ENV: production
+          BANNER: ${{ vars.BANNER }}
         run: python3 scripts/stamp.py
 
       - name: Log in to Google Cloud, keyless
