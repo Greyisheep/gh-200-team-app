@@ -4,8 +4,8 @@ By the end, a change merged to `main` in **your** repo goes through tests, waits
 for a teammate to approve, deploys to **your team's own URL**, and checks it is
 live. Then you give it a rollback.
 
-Some of what you add below **fails on purpose**. When a run goes red, read the
-error, write down what you think it means, and wait. We fix each one together.
+First you ship the working pipeline. Then you explain it, line by line, in your
+own comments. Then you **break it on purpose**, four times, and read what goes red.
 
 ---
 
@@ -30,6 +30,8 @@ error, write down what you think it means, and wait. We fix each one together.
 
    Optional: add `BANNER` with any sentence, and it appears on your live page.
 
+   Values for your team: [TEAMS.md](https://github.com/Greyisheep/gh-200-team-app/blob/main/TEAMS.md).
+
    None of these are secrets. That is the point of the keyless login: there is
    no password to store.
 
@@ -42,100 +44,69 @@ Open it now. You will see a placeholder until your first deploy.
 
 ---
 
-## Stage 1: CI (5 min)
+## Stage 1: ship it (15 min)
 
-`.github/workflows/pipeline.yml` already builds the page into an image and
-checks it renders, on every pull request and every push to `main`.
+1. Copy the whole of `reference/pipeline-final.yml` into
+   `.github/workflows/pipeline.yml`, replacing what is there. Commit to `main`.
+2. Open the **Actions** tab. The test job goes green, then the deploy job
+   **waits**.
+3. Your teammate opens the run, clicks **Review deployments**, ticks
+   `production`, approves.
+4. Open your team's URL. Your team, your commit, your name.
 
-Edit `app/index.html` in the browser, change a word, commit to `main`. Watch it
-go green in the **Actions** tab.
-
----
-
-## Stage 2: the first deploy attempt (30 min, three red runs)
-
-This is how most people write their first deploy job. Add it, exactly as it is.
-
-**a)** At the end of the `test` job, add one step:
-
-```yaml
-      - name: Pick the version tag
-        run: echo "TAG=${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-```
-
-**b)** Under `jobs:`, after the whole `test` job, add the `deploy` job:
-
-```yaml
-  deploy:
-    name: Deploy to Cloud Run
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Stamp the page
-        env:
-          TEAM: ${{ vars.TEAM }}
-          SHA: ${{ github.sha }}
-          ACTOR: ${{ github.actor }}
-          DEPLOY_ENV: production
-          BANNER: ${{ vars.BANNER }}
-        run: python3 scripts/stamp.py
-
-      - name: Log in to Google Cloud, keyless
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
-        with:
-          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
-          service_account: ${{ vars.DEPLOYER_SA }}
-
-      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-
-      - name: Build and push the image
-        run: |
-          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
-          docker build -t "$IMAGE:$TAG" app
-          docker push "$IMAGE:$TAG"
-
-      - name: Deploy
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3
-        with:
-          service: ${{ vars.SERVICE }}
-          region: ${{ vars.GCP_REGION }}
-          image: ${{ env.IMAGE }}:${{ env.TAG }}
-
-      - name: Check it is live
-        env:
-          URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          curl -fs "$URL" | grep -q "${GITHUB_SHA:0:7}" \
-            || { echo "::error::The live page is not showing this commit"; exit 1; }
-          echo "### Live at $URL, tag $TAG" >> "$GITHUB_STEP_SUMMARY"
-```
-
-Commit to `main`. It goes red. **Read the red step, then wait.** After each fix
-from the class, commit again. Expect three different reds before a green.
+Stuck? The end-to-end explanation is
+[PIPELINE-EXPLAINED.md](https://github.com/Greyisheep/gh-200-team-app/blob/main/PIPELINE-EXPLAINED.md).
 
 ---
 
-## Stage 3: a pull request (10 min, one red run)
+## Stage 2: explain it, in your own comments (25 min)
 
-Make a branch, change a word on the page, open a pull request to `main`.
-Look at what the `deploy` job does. Red again. **Wait.**
+In your `.github/workflows/pipeline.yml`, add a `#` comment **above every block
+and every step** saying, in your own words:
+
+- **what** it does
+- **why** it is there
+- **what would go wrong** without it
+
+Cover at least these, in detail:
+
+| Block | Questions your comment must answer |
+|---|---|
+| `on:` | Which events start this, and why both pull_request and push? |
+| `permissions:` (top) | What can the token do, and why so little? |
+| `concurrency:` (top and deploy) | What gets cancelled, what never does, and why? |
+| `env: IMAGE` | Where does each part of the name come from? |
+| test job `outputs:` | Why does the tag have to be published from the job? |
+| each test step | What does it check, and what would make it go red? |
+| `needs:` and `if:` | When does deploy run, and when is it skipped? |
+| `environment:` | What two things does it do, one on GitHub and one for Google? |
+| `permissions: id-token: write` | What token does it allow, and who checks it? |
+| `env: TAG` | Read the chain `needs.test.outputs.tag` out loud, dot by dot |
+| each deploy step | What happens, and on which machine? |
+
+Commit it. It deploys again, with comments. A teammate approves.
 
 ---
 
-## Stage 4: prove it (10 min)
+## Stage 3: break it on purpose (30 min)
 
-Merge the pull request. A teammate approves the deploy (**Review deployments**
-on the run). Open your team's URL: your commit, your name, your team.
+One break at a time. For each: make the edit, commit to `main`, approve if it
+asks, **read the red step**, write down what it means, then **undo the edit and
+commit** before the next one.
+
+| Break | Edit in `.github/workflows/pipeline.yml` | Expect |
+|---|---|---|
+| 1 | In `deploy`, delete the line `id-token: write` | *did not inject $ACTIONS_ID_TOKEN_REQUEST_TOKEN* |
+| 2 | In `deploy`, delete the three `environment:` lines | *rejected by the attribute condition* |
+| 3 | In `test`, last step: change `$GITHUB_OUTPUT` to `$GITHUB_ENV` | *invalid tag ".../frontend:"* |
+| 4 | On a **new branch**, delete the `if:` line from `deploy`, then open a pull request | *not allowed to deploy to production* |
+
+After each one, add a comment to the line you broke saying what happened
+without it.
 
 ---
 
-## Stage 5: stretch, a rollback (20 min)
+## Stage 4: stretch, a rollback (20 min)
 
 1. Copy `reference/rollback.yml` into `.github/workflows/`.
 2. Make one more change and deploy it, so you have two versions.
@@ -145,7 +116,8 @@ on the run). Open your team's URL: your commit, your name, your team.
 
 ---
 
-## Stuck?
+## Done when
 
-`reference/pipeline-final.yml` is the finished pipeline. Try for five minutes
-before you open it, then compare line by line.
+- Your URL shows your team and your latest commit.
+- Your pipeline file has a comment on every block, in your own words.
+- You have seen all four reds, and your file is green again.
