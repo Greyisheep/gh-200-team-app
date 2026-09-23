@@ -2,144 +2,151 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Shipped by a pipeline: __TEAM__, GH-200">
 <title>__TEAM__ shipped it · GH-200</title>
 <style>
+  /* Colours are Apple's published system colours (HIG, Color, 2025 values),
+     light first, dark in the media query. Type uses the system font stack,
+     which is San Francisco on Apple devices. */
   :root {
-    --ink: #120d17; --glass: rgba(255,255,255,.075); --edge: rgba(255,255,255,.18);
-    --text: #fbf5ee; --soft: rgba(251,245,238,.72); --dim: rgba(251,245,238,.5);
-    --rust: #e0663a; --amber: #f2b35b; --plum: #8a5aa0; --teal: #2f8c8a; --ok: #7fd6a4;
+    --bg: #f2f2f7;            /* systemGroupedBackground */
+    --card: #ffffff;          /* secondarySystemGroupedBackground */
+    --label: #000000;
+    --label2: rgba(60,60,67,.6);    /* secondaryLabel */
+    --label3: rgba(60,60,67,.3);
+    --sep: rgba(60,60,67,.29);      /* separator */
+    --green: rgb(52,199,89); --blue: rgb(0,136,255); --indigo: rgb(97,85,245);
+    --orange: rgb(255,141,40); --pink: rgb(255,45,85); --purple: rgb(203,48,224); --teal: rgb(0,195,208);
+    --bar: rgba(255,255,255,.62);
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06);
   }
-  * { box-sizing: border-box; margin: 0 }
-  html, body { min-height: 100% }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000; --card: #1c1c1e; --label: #ffffff;
+      --label2: rgba(235,235,245,.6); --label3: rgba(235,235,245,.3); --sep: rgba(84,84,88,.6);
+      --green: rgb(48,209,88); --blue: rgb(0,145,255); --indigo: rgb(109,124,255);
+      --orange: rgb(255,146,48); --pink: rgb(255,55,95); --purple: rgb(219,52,242); --teal: rgb(0,210,224);
+      --bar: rgba(28,28,30,.55); --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0 }
   body {
-    min-height: 100vh; background: var(--ink); color: var(--text); overflow-x: hidden;
-    font: 16px/1.5 "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    display: grid; place-items: center; padding: 28px 16px;
+    background: var(--bg); color: var(--label); min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 17px; line-height: 1.35; -webkit-font-smoothing: antialiased;
   }
-  /* the moving light behind the glass */
-  .sky { position: fixed; inset: 0; overflow: hidden; z-index: 0 }
-  .blob { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; filter: blur(70px); opacity: .55;
-          animation: drift 18s ease-in-out infinite alternate }
-  .b1 { background: var(--rust);  left: -12vmax; top: -14vmax }
-  .b2 { background: var(--plum);  right: -14vmax; top: 10vmax; animation-duration: 22s }
-  .b3 { background: var(--teal);  left: 10vmax; bottom: -20vmax; animation-duration: 26s }
-  .b4 { background: var(--amber); right: 8vmax; bottom: -16vmax; width: 30vmax; height: 30vmax; animation-duration: 20s; opacity: .4 }
-  @keyframes drift { to { transform: translate(6vmax, 5vmax) scale(1.12) } }
-  .grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .07;
-           background-image: radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px); background-size: 3px 3px }
 
-  main { position: relative; z-index: 2; width: 100%; max-width: 760px }
-  .glass {
-    position: relative; background: var(--glass); border: 1px solid var(--edge); border-radius: 30px;
-    backdrop-filter: blur(26px) saturate(170%); -webkit-backdrop-filter: blur(26px) saturate(170%);
-    box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(255,255,255,.06);
-    overflow: hidden;
+  /* The one piece of glass: a floating navigation bar, as the HIG intends. */
+  .bar {
+    position: sticky; top: 12px; z-index: 5; margin: 12px auto 0; width: min(720px, calc(100% - 24px));
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px 10px 18px; border-radius: 999px;
+    background: var(--bar); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: .5px solid var(--sep); box-shadow: var(--shadow);
   }
-  .glass::before { /* the curved highlight that makes glass look like glass */
-    content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-    background: linear-gradient(145deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.04) 32%, transparent 55%);
-  }
-  .card { padding: 40px 40px 34px }
-  .top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between }
-  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 99px;
-          background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); font-size: 13px;
-          font-weight: 600; letter-spacing: .06em; text-transform: uppercase }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(127,214,164,.7);
-         animation: pulse 2s infinite }
-  @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(127,214,164,0) } 100% { box-shadow: 0 0 0 0 rgba(127,214,164,0) } }
+  .bar b { font-size: 15px; font-weight: 600; letter-spacing: -.01em }
+  .live { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px;
+          background: var(--green); color: #fff; font-size: 13px; font-weight: 600 }
+  .live i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: beat 1.8s ease-in-out infinite }
+  @keyframes beat { 50% { opacity: .35 } }
 
-  h1 { margin-top: 26px; font-size: clamp(40px, 8vw, 72px); line-height: 1; letter-spacing: -.035em; font-weight: 800;
-       background: linear-gradient(100deg, #fff 10%, var(--amber) 45%, var(--rust) 70%, #f7c6e0 95%);
-       -webkit-background-clip: text; background-clip: text; color: transparent }
-  .team { margin-top: 12px; font-size: clamp(20px, 3.4vw, 26px); color: var(--text); font-weight: 600 }
-  .banner { margin-top: 6px; font-size: 17px; color: var(--soft) }
+  main { width: min(720px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0 64px }
+  .eyebrow { font-size: 15px; font-weight: 600; color: var(--blue); letter-spacing: -.01em }
+  h1 { margin-top: 6px; font-size: clamp(44px, 9vw, 80px); line-height: 1.02; font-weight: 700; letter-spacing: -.035em }
+  h1 span { background: linear-gradient(90deg, var(--orange), var(--pink) 50%, var(--purple));
+            -webkit-background-clip: text; background-clip: text; color: transparent }
+  .lede { margin-top: 14px; font-size: clamp(19px, 2.6vw, 24px); line-height: 1.3; color: var(--label2); letter-spacing: -.01em; max-width: 34ch }
+  .lede strong { color: var(--label); font-weight: 600 }
 
-  .steps { margin-top: 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px }
-  .step { padding: 14px 12px; border-radius: 18px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-          opacity: 0; transform: translateY(10px); animation: rise .6s ease forwards }
-  .step:nth-child(2) { animation-delay: .25s } .step:nth-child(3) { animation-delay: .5s } .step:nth-child(4) { animation-delay: .75s }
-  @keyframes rise { to { opacity: 1; transform: none } }
-  .tick { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 800;
-          color: #0f2a1b; background: var(--ok); margin-bottom: 10px }
-  .step b { display: block; font-size: 15px } .step span { font-size: 13px; color: var(--dim) }
+  h2 { margin: 40px 0 8px 16px; font-size: 13px; font-weight: 400; text-transform: uppercase; letter-spacing: .02em; color: var(--label2) }
+  .group { background: var(--card); border-radius: 22px; overflow: hidden; box-shadow: var(--shadow) }
+  .row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; position: relative;
+         opacity: 0; transform: translateY(6px); animation: in .5s cubic-bezier(.2,.8,.2,1) forwards }
+  .row + .row::before { content: ""; position: absolute; top: 0; right: 0; left: 64px; border-top: .5px solid var(--sep) }
+  .rows-2 .row + .row::before { left: 18px }
+  .row:nth-child(2) { animation-delay: .12s } .row:nth-child(3) { animation-delay: .24s } .row:nth-child(4) { animation-delay: .36s }
+  @keyframes in { to { opacity: 1; transform: none } }
+  .icon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #fff }
+  .icon svg { width: 18px; height: 18px }
+  .text { flex: 1; min-width: 0 }
+  .text b { display: block; font-weight: 400 }
+  .text small { display: block; font-size: 15px; color: var(--label2) }
+  .check { color: var(--green); font-size: 20px; font-weight: 600 }
+  .key { flex: 1; color: var(--label) }
+  .val { color: var(--label2); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 16px; text-align: right; overflow-wrap: anywhere }
 
-  .facts { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
-  .fact { padding: 14px 16px; border-radius: 18px; background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.1) }
-  .fact dt { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim) }
-  .fact dd { margin-top: 4px; font: 600 17px/1.3 ui-monospace, "SF Mono", Menlo, monospace; word-break: break-word }
+  footer { margin: 28px 16px 0; font-size: 13px; color: var(--label2); line-height: 1.45 }
+  canvas { position: fixed; inset: 0; pointer-events: none; z-index: 10 }
 
-  footer { margin-top: 26px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12);
-           display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--soft) }
-  footer strong { color: var(--text) }
-  canvas { position: fixed; inset: 0; z-index: 3; pointer-events: none }
-
-  @media (max-width: 640px) {
-    .card { padding: 28px 22px 24px }
-    .steps { grid-template-columns: repeat(2, 1fr) }
-    .facts { grid-template-columns: 1fr }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .blob, .dot { animation: none } .step { animation: none; opacity: 1; transform: none }
-  }
+  @media (prefers-reduced-motion: reduce) { .row { animation: none; opacity: 1; transform: none } .live i { animation: none } }
 </style>
 </head>
 <body>
-<div class="sky" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
-<div class="grain" aria-hidden="true"></div>
+<nav class="bar" aria-label="Status">
+  <b>GH-200 &middot; GitHub Actions</b>
+  <span class="live"><i></i>Live in __ENV__</span>
+</nav>
 
 <main>
-  <section class="glass card">
-    <div class="top">
-      <span class="pill"><span class="dot"></span>Live &middot; __ENV__</span>
-      <span class="pill">GH-200 &middot; GitHub Actions</span>
+  <p class="eyebrow">__TEAM__</p>
+  <h1>Shipped by a <span>pipeline</span>.</h1>
+  <p class="lede"><strong>You built this, and a workflow deployed it.</strong> __BANNER__.</p>
+
+  <h2>What your pipeline did</h2>
+  <div class="group">
+    <div class="row">
+      <div class="icon" style="background:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/></svg></div>
+      <div class="text"><b>Tested</b><small>Built and checked on every change</small></div><span class="check">&#10003;</span>
     </div>
-
-    <h1>Shipped by a pipeline</h1>
-    <p class="team">__TEAM__ built this, and a workflow deployed it.</p>
-    <p class="banner">__BANNER__</p>
-
-    <div class="steps">
-      <div class="step"><div class="tick">&#10003;</div><b>Tested</b><span>built and checked on every change</span></div>
-      <div class="step"><div class="tick">&#10003;</div><b>Approved</b><span>a teammate said yes</span></div>
-      <div class="step"><div class="tick">&#10003;</div><b>Deployed</b><span>keyless, no password anywhere</span></div>
-      <div class="step"><div class="tick">&#10003;</div><b>Verified</b><span>the pipeline checked this page</span></div>
+    <div class="row">
+      <div class="icon" style="background:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 11l2 2 4-4"/></svg></div>
+      <div class="text"><b>Approved</b><small>A teammate said yes</small></div><span class="check">&#10003;</span>
     </div>
+    <div class="row">
+      <div class="icon" style="background:var(--indigo)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
+      <div class="text"><b>Deployed</b><small>Keyless. No password stored anywhere</small></div><span class="check">&#10003;</span>
+    </div>
+    <div class="row">
+      <div class="icon" style="background:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/><path d="M8.5 11l1.8 1.8 3.2-3.3"/></svg></div>
+      <div class="text"><b>Verified</b><small>The pipeline opened this page and checked it</small></div><span class="check">&#10003;</span>
+    </div>
+  </div>
 
-    <dl class="facts">
-      <div class="fact"><dt>Commit</dt><dd>__SHA__</dd></div>
-      <div class="fact"><dt>Deployed by</dt><dd>__ACTOR__</dd></div>
-      <div class="fact"><dt>Built at</dt><dd>__TIME__</dd></div>
-    </dl>
+  <h2>This build</h2>
+  <div class="group rows-2">
+    <div class="row"><span class="key">Commit</span><span class="val">__SHA__</span></div>
+    <div class="row"><span class="key">Deployed by</span><span class="val">__ACTOR__</span></div>
+    <div class="row"><span class="key">Built at</span><span class="val">__TIME__</span></div>
+  </div>
 
-    <footer>
-      <span><strong>Nobody touched a server.</strong> Merge, approve, live.</span>
-      <span>Two days ago this was a YAML file you had never seen.</span>
-    </footer>
-  </section>
+  <footer>Nobody touched a server. Merge, approve, live. Two days ago this was a YAML file you had never seen.</footer>
 </main>
 
 <canvas id="c" aria-hidden="true"></canvas>
 <script>
-  // A short burst of confetti in the class colours. Skipped for reduced motion.
+  // Confetti in Apple's system colours, once, for about three seconds.
   (function () {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var c = document.getElementById('c'), x = c.getContext('2d'), W, H, bits = [], t0 = performance.now();
-    var cols = ['#e0663a', '#f2b35b', '#8a5aa0', '#2f8c8a', '#7fd6a4', '#fbf5ee'];
-    function size() { W = c.width = innerWidth * devicePixelRatio; H = c.height = innerHeight * devicePixelRatio }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var c = document.getElementById('c'), x = c.getContext('2d'), d = devicePixelRatio || 1, W, H, t0 = performance.now();
+    function size() { W = c.width = innerWidth * d; H = c.height = innerHeight * d }
     size(); addEventListener('resize', size);
-    for (var i = 0; i < 160; i++) bits.push({
-      x: W / 2, y: H * .38, vx: (Math.random() - .5) * 26 * devicePixelRatio, vy: (-Math.random() * 22 - 6) * devicePixelRatio,
-      r: (Math.random() * 5 + 3) * devicePixelRatio, c: cols[i % cols.length], a: Math.random() * 6, s: Math.random() * .3 + .1
-    });
-    (function frame(now) {
+    var cols = ['rgb(52,199,89)', 'rgb(0,136,255)', 'rgb(97,85,245)', 'rgb(255,141,40)', 'rgb(255,45,85)', 'rgb(203,48,224)', 'rgb(255,204,0)'];
+    var bits = [];
+    for (var i = 0; i < 180; i++) {
+      var left = i % 2 === 0;
+      bits.push({ x: left ? 0 : W, y: H * .75, vx: (left ? 1 : -1) * (Math.random() * 14 + 8) * d, vy: -(Math.random() * 18 + 12) * d,
+                  w: (Math.random() * 6 + 5) * d, h: (Math.random() * 4 + 3) * d, a: Math.random() * 6, s: (Math.random() - .5) * .4, c: cols[i % cols.length] });
+    }
+    (function f(now) {
       var t = (now - t0) / 1000; x.clearRect(0, 0, W, H);
       bits.forEach(function (b) {
-        b.vy += .55 * devicePixelRatio; b.vx *= .985; b.x += b.vx; b.y += b.vy; b.a += b.s;
-        x.save(); x.translate(b.x, b.y); x.rotate(b.a); x.globalAlpha = Math.max(0, 1 - t / 3.2);
-        x.fillStyle = b.c; x.fillRect(-b.r, -b.r / 2, b.r * 2, b.r); x.restore();
+        b.vy += .45 * d; b.vx *= .99; b.x += b.vx; b.y += b.vy; b.a += b.s;
+        x.save(); x.globalAlpha = Math.max(0, 1 - t / 3.4); x.translate(b.x, b.y); x.rotate(b.a);
+        x.fillStyle = b.c; x.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); x.restore();
       });
-      if (t < 3.3) requestAnimationFrame(frame); else x.clearRect(0, 0, W, H);
+      if (t < 3.5) requestAnimationFrame(f); else x.clearRect(0, 0, W, H);
     })(t0);
   })();
 </script>
