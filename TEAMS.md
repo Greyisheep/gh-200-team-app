@@ -10,6 +10,7 @@ Settings, Secrets and variables, Actions, **Variables** tab. Add all seven. None
 | 4 Mercyohenhen/gh-200-team |  | `Team 4 Mercyohenhen/gh-200-team` | `gh200-team-4 Mercyohenhen/gh-200-team` | `gh200-team-4 Mercyohenhen/gh-200-team@deepstack-492609.iam.gserviceaccount.com` | https://gh200-team-4 Mercyohenhen/gh-200-team-130785602363.europe-west1.run.app |
 | 5 iblueblood/gh-200-team |  | `Team 5 iblueblood/gh-200-team` | `gh200-team-5 iblueblood/gh-200-team` | `gh200-team-5 iblueblood/gh-200-team@deepstack-492609.iam.gserviceaccount.com` | https://gh200-team-5 iblueblood/gh-200-team-130785602363.europe-west1.run.app |
 | 6 Fateeemah01/gh-200-team |  | `Team 6 Fateeemah01/gh-200-team` | `gh200-team-6 Fateeemah01/gh-200-team` | `gh200-team-6 Fateeemah01/gh-200-team@deepstack-492609.iam.gserviceaccount.com` | https://gh200-team-6 Fateeemah01/gh-200-team-130785602363.europe-west1.run.app |
+| 7 | ayomide000/gh-team-app-project | `Team 7` | `gh200-team-7` | `gh200-team-7@deepstack-492609.iam.gserviceaccount.com` | https://gh200-team-7-130785602363.europe-west1.run.app |
 
 Same for every team:
 
