@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TEAM__ · GH-200</title>
+<style>
+  :root { --paper:#F5F0E8; --ink:#241B2B; --body:#574A5E; --rust:#A8482A; --card:#FCFAF6; --line:#DCD1C2; }
+  * { box-sizing:border-box }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+         background:var(--paper); color:var(--body); font:16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif }
+  main { width:100%; max-width:640px; background:var(--card); border:1px solid var(--line);
+         border-top:6px solid var(--rust); border-radius:14px; padding:32px }
+  .eyebrow { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--rust); font-weight:700 }
+  h1 { margin:6px 0 4px; color:var(--ink); font-size:32px; line-height:1.15 }
+  .banner { font-size:20px; color:var(--ink); margin:0 0 24px }
+  .env { display:inline-block; background:var(--ink); color:#F7F3EE; border-radius:99px;
+         padding:3px 12px; font-size:13px; font-weight:600 }
+  dl { display:grid; grid-template-columns:max-content 1fr; gap:8px 16px; margin:24px 0 0 }
+  dt { color:var(--body) } dd { margin:0; color:var(--ink); font-family:ui-monospace, Menlo, monospace }
+  footer { margin-top:28px; padding-top:16px; border-top:1px solid var(--line); font-size:14px }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">GH-200 &middot; __TEAM__</div>
+  <h1>Shipped by a pipeline</h1>
+  <p class="banner">__BANNER__</p>
+  <span class="env">__ENV__</span>
+  <dl>
+    <dt>Commit</dt>      <dd>__SHA__</dd>
+    <dt>Deployed by</dt> <dd>__ACTOR__</dd>
+    <dt>Built at</dt>    <dd>__TIME__</dd>
+  </dl>
+  <footer>If this page changed after you merged, the pipeline worked. Nobody touched a server.</footer>
+</main>
+</body>
+</html>

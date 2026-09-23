@@ -1,0 +1,115 @@
+# Reference answer: the whole pipeline after every stage in LAB.md.
+# Kept outside .github/ so it never runs by itself. Compare, do not copy first.
+name: Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read              # the default ceiling for every job
+
+concurrency:                  # cancel stale PR runs, never a run on main
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/${{ vars.AR_REPO }}/frontend
+
+jobs:
+  test:
+    name: Build and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}      # trap 3: publish it from the job
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Stamp the page
+        env:
+          TEAM: ${{ vars.TEAM }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          DEPLOY_ENV: ci
+        run: python3 scripts/stamp.py
+
+      - name: Build the image
+        run: docker build -t frontend:test app
+
+      - name: Run it and check it answers
+        run: |
+          docker run -d --name web -p 8080:8080 frontend:test
+          for i in $(seq 1 20); do curl -fs localhost:8080 >/dev/null && break; sleep 1; done
+          curl -fs localhost:8080 | grep -q "Shipped by a pipeline" \
+            || { echo "::error::The page did not render"; exit 1; }
+          echo "### Smoke test passed" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pick the version tag
+        id: version
+        run: echo "tag=${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy to Cloud Run
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'   # trap 4
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:                                  # trap 2: the gate, and what Google trusts
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:                                  # trap 1: allow the job to ask for a token
+      contents: read
+      id-token: write
+    env:
+      TAG: ${{ needs.test.outputs.tag }}          # trap 3: read it from the other job
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Stamp the page
+        env:
+          TEAM: ${{ vars.TEAM }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          DEPLOY_ENV: production
+        run: python3 scripts/stamp.py
+
+      - name: Log in to Google Cloud, keyless
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - name: Build and push the image
+        run: |
+          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+          docker build -t "$IMAGE:$TAG" app
+          docker push "$IMAGE:$TAG"
+
+      - name: Deploy
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3
+        with:
+          service: ${{ vars.SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ env.IMAGE }}:${{ env.TAG }}
+
+      - name: Check it is live
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          curl -fs "$URL" | grep -q "${GITHUB_SHA:0:7}" \
+            || { echo "::error::The live page is not showing this commit"; exit 1; }
+          echo "### Live at $URL, tag $TAG" >> "$GITHUB_STEP_SUMMARY"

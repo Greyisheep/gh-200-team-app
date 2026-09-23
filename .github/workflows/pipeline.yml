@@ -1,0 +1,47 @@
+name: Pipeline
+
+# Stage 1, what you start with: every pull request and every push to main
+# builds the page into an image and checks it renders. Nothing is deployed yet.
+# LAB.md tells you what to add next.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/${{ vars.AR_REPO }}/frontend
+
+jobs:
+  test:
+    name: Build and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Stamp the page
+        env:
+          TEAM: ${{ vars.TEAM }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          DEPLOY_ENV: ci
+        run: python3 scripts/stamp.py
+
+      - name: Build the image
+        run: docker build -t frontend:test app
+
+      - name: Run it and check it answers
+        run: |
+          docker run -d --name web -p 8080:8080 frontend:test
+          for i in $(seq 1 20); do curl -fs localhost:8080 >/dev/null && break; sleep 1; done
+          curl -fs localhost:8080 | grep -q "Shipped by a pipeline" \
+            || { echo "::error::The page did not render"; exit 1; }
+          echo "### Smoke test passed" >> "$GITHUB_STEP_SUMMARY"

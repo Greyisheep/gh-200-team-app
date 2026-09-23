@@ -1,0 +1,61 @@
+# Stretch goal: put an earlier tag back live. Copy into .github/workflows/
+# when you get to stage 5 of LAB.md. Tags are in each deploy's run summary.
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Image tag of an earlier good deploy, like a1b2c3d-12
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production       # queue behind a deploy, never race it
+  cancel-in-progress: false
+
+env:
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/${{ vars.AR_REPO }}/frontend
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check the input looks like one of our tags
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$TAG" =~ ^[0-9a-f]{7}-[0-9]+$ ]] \
+            || { echo "::error::Give a tag like a1b2c3d-12, from a deploy's run summary"; exit 1; }
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+
+      - name: Deploy the old image
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3
+        with:
+          service: ${{ vars.SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ env.IMAGE }}:${{ inputs.tag }}
+
+      - name: Check the old build is what is live
+        env:
+          TAG: ${{ inputs.tag }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          curl -fs "$URL" | grep -q "${TAG%%-*}" \
+            || { echo "::error::The live page is not showing ${TAG%%-*}"; exit 1; }
+          echo "### Rolled back to $TAG" >> "$GITHUB_STEP_SUMMARY"
