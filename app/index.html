@@ -3,36 +3,145 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>__TEAM__ · GH-200</title>
+<title>__TEAM__ shipped it · GH-200</title>
 <style>
-  :root { --paper:#F5F0E8; --ink:#241B2B; --body:#574A5E; --rust:#A8482A; --card:#FCFAF6; --line:#DCD1C2; }
-  * { box-sizing:border-box }
-  body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
-         background:var(--paper); color:var(--body); font:16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif }
-  main { width:100%; max-width:640px; background:var(--card); border:1px solid var(--line);
-         border-top:6px solid var(--rust); border-radius:14px; padding:32px }
-  .eyebrow { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--rust); font-weight:700 }
-  h1 { margin:6px 0 4px; color:var(--ink); font-size:32px; line-height:1.15 }
-  .banner { font-size:20px; color:var(--ink); margin:0 0 24px }
-  .env { display:inline-block; background:var(--ink); color:#F7F3EE; border-radius:99px;
-         padding:3px 12px; font-size:13px; font-weight:600 }
-  dl { display:grid; grid-template-columns:max-content 1fr; gap:8px 16px; margin:24px 0 0 }
-  dt { color:var(--body) } dd { margin:0; color:var(--ink); font-family:ui-monospace, Menlo, monospace }
-  footer { margin-top:28px; padding-top:16px; border-top:1px solid var(--line); font-size:14px }
+  :root {
+    --ink: #120d17; --glass: rgba(255,255,255,.075); --edge: rgba(255,255,255,.18);
+    --text: #fbf5ee; --soft: rgba(251,245,238,.72); --dim: rgba(251,245,238,.5);
+    --rust: #e0663a; --amber: #f2b35b; --plum: #8a5aa0; --teal: #2f8c8a; --ok: #7fd6a4;
+  }
+  * { box-sizing: border-box; margin: 0 }
+  html, body { min-height: 100% }
+  body {
+    min-height: 100vh; background: var(--ink); color: var(--text); overflow-x: hidden;
+    font: 16px/1.5 "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: grid; place-items: center; padding: 28px 16px;
+  }
+  /* the moving light behind the glass */
+  .sky { position: fixed; inset: 0; overflow: hidden; z-index: 0 }
+  .blob { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; filter: blur(70px); opacity: .55;
+          animation: drift 18s ease-in-out infinite alternate }
+  .b1 { background: var(--rust);  left: -12vmax; top: -14vmax }
+  .b2 { background: var(--plum);  right: -14vmax; top: 10vmax; animation-duration: 22s }
+  .b3 { background: var(--teal);  left: 10vmax; bottom: -20vmax; animation-duration: 26s }
+  .b4 { background: var(--amber); right: 8vmax; bottom: -16vmax; width: 30vmax; height: 30vmax; animation-duration: 20s; opacity: .4 }
+  @keyframes drift { to { transform: translate(6vmax, 5vmax) scale(1.12) } }
+  .grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .07;
+           background-image: radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px); background-size: 3px 3px }
+
+  main { position: relative; z-index: 2; width: 100%; max-width: 760px }
+  .glass {
+    position: relative; background: var(--glass); border: 1px solid var(--edge); border-radius: 30px;
+    backdrop-filter: blur(26px) saturate(170%); -webkit-backdrop-filter: blur(26px) saturate(170%);
+    box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(255,255,255,.06);
+    overflow: hidden;
+  }
+  .glass::before { /* the curved highlight that makes glass look like glass */
+    content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background: linear-gradient(145deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.04) 32%, transparent 55%);
+  }
+  .card { padding: 40px 40px 34px }
+  .top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 99px;
+          background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); font-size: 13px;
+          font-weight: 600; letter-spacing: .06em; text-transform: uppercase }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(127,214,164,.7);
+         animation: pulse 2s infinite }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(127,214,164,0) } 100% { box-shadow: 0 0 0 0 rgba(127,214,164,0) } }
+
+  h1 { margin-top: 26px; font-size: clamp(40px, 8vw, 72px); line-height: 1; letter-spacing: -.035em; font-weight: 800;
+       background: linear-gradient(100deg, #fff 10%, var(--amber) 45%, var(--rust) 70%, #f7c6e0 95%);
+       -webkit-background-clip: text; background-clip: text; color: transparent }
+  .team { margin-top: 12px; font-size: clamp(20px, 3.4vw, 26px); color: var(--text); font-weight: 600 }
+  .banner { margin-top: 6px; font-size: 17px; color: var(--soft) }
+
+  .steps { margin-top: 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px }
+  .step { padding: 14px 12px; border-radius: 18px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+          opacity: 0; transform: translateY(10px); animation: rise .6s ease forwards }
+  .step:nth-child(2) { animation-delay: .25s } .step:nth-child(3) { animation-delay: .5s } .step:nth-child(4) { animation-delay: .75s }
+  @keyframes rise { to { opacity: 1; transform: none } }
+  .tick { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 800;
+          color: #0f2a1b; background: var(--ok); margin-bottom: 10px }
+  .step b { display: block; font-size: 15px } .step span { font-size: 13px; color: var(--dim) }
+
+  .facts { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+  .fact { padding: 14px 16px; border-radius: 18px; background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.1) }
+  .fact dt { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim) }
+  .fact dd { margin-top: 4px; font: 600 17px/1.3 ui-monospace, "SF Mono", Menlo, monospace; word-break: break-word }
+
+  footer { margin-top: 26px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12);
+           display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--soft) }
+  footer strong { color: var(--text) }
+  canvas { position: fixed; inset: 0; z-index: 3; pointer-events: none }
+
+  @media (max-width: 640px) {
+    .card { padding: 28px 22px 24px }
+    .steps { grid-template-columns: repeat(2, 1fr) }
+    .facts { grid-template-columns: 1fr }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .blob, .dot { animation: none } .step { animation: none; opacity: 1; transform: none }
+  }
 </style>
 </head>
 <body>
+<div class="sky" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
+<div class="grain" aria-hidden="true"></div>
+
 <main>
-  <div class="eyebrow">GH-200 &middot; __TEAM__</div>
-  <h1>Shipped by a pipeline</h1>
-  <p class="banner">__BANNER__</p>
-  <span class="env">__ENV__</span>
-  <dl>
-    <dt>Commit</dt>      <dd>__SHA__</dd>
-    <dt>Deployed by</dt> <dd>__ACTOR__</dd>
-    <dt>Built at</dt>    <dd>__TIME__</dd>
-  </dl>
-  <footer>If this page changed after you merged, the pipeline worked. Nobody touched a server.</footer>
+  <section class="glass card">
+    <div class="top">
+      <span class="pill"><span class="dot"></span>Live &middot; __ENV__</span>
+      <span class="pill">GH-200 &middot; GitHub Actions</span>
+    </div>
+
+    <h1>Shipped by a pipeline</h1>
+    <p class="team">__TEAM__ built this, and a workflow deployed it.</p>
+    <p class="banner">__BANNER__</p>
+
+    <div class="steps">
+      <div class="step"><div class="tick">&#10003;</div><b>Tested</b><span>built and checked on every change</span></div>
+      <div class="step"><div class="tick">&#10003;</div><b>Approved</b><span>a teammate said yes</span></div>
+      <div class="step"><div class="tick">&#10003;</div><b>Deployed</b><span>keyless, no password anywhere</span></div>
+      <div class="step"><div class="tick">&#10003;</div><b>Verified</b><span>the pipeline checked this page</span></div>
+    </div>
+
+    <dl class="facts">
+      <div class="fact"><dt>Commit</dt><dd>__SHA__</dd></div>
+      <div class="fact"><dt>Deployed by</dt><dd>__ACTOR__</dd></div>
+      <div class="fact"><dt>Built at</dt><dd>__TIME__</dd></div>
+    </dl>
+
+    <footer>
+      <span><strong>Nobody touched a server.</strong> Merge, approve, live.</span>
+      <span>Two days ago this was a YAML file you had never seen.</span>
+    </footer>
+  </section>
 </main>
+
+<canvas id="c" aria-hidden="true"></canvas>
+<script>
+  // A short burst of confetti in the class colours. Skipped for reduced motion.
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var c = document.getElementById('c'), x = c.getContext('2d'), W, H, bits = [], t0 = performance.now();
+    var cols = ['#e0663a', '#f2b35b', '#8a5aa0', '#2f8c8a', '#7fd6a4', '#fbf5ee'];
+    function size() { W = c.width = innerWidth * devicePixelRatio; H = c.height = innerHeight * devicePixelRatio }
+    size(); addEventListener('resize', size);
+    for (var i = 0; i < 160; i++) bits.push({
+      x: W / 2, y: H * .38, vx: (Math.random() - .5) * 26 * devicePixelRatio, vy: (-Math.random() * 22 - 6) * devicePixelRatio,
+      r: (Math.random() * 5 + 3) * devicePixelRatio, c: cols[i % cols.length], a: Math.random() * 6, s: Math.random() * .3 + .1
+    });
+    (function frame(now) {
+      var t = (now - t0) / 1000; x.clearRect(0, 0, W, H);
+      bits.forEach(function (b) {
+        b.vy += .55 * devicePixelRatio; b.vx *= .985; b.x += b.vx; b.y += b.vy; b.a += b.s;
+        x.save(); x.translate(b.x, b.y); x.rotate(b.a); x.globalAlpha = Math.max(0, 1 - t / 3.2);
+        x.fillStyle = b.c; x.fillRect(-b.r, -b.r / 2, b.r * 2, b.r); x.restore();
+      });
+      if (t < 3.3) requestAnimationFrame(frame); else x.clearRect(0, 0, W, H);
+    })(t0);
+  })();
+</script>
 </body>
 </html>
